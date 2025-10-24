@@ -1,0 +1,103 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/health",
+      "dest": "/index.js"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/index.js"
+    },
+    {
+      "src": "/game/assets/(.*)",
+      "dest": "/game/assets/$1"
+    },
+    {
+      "src": "/game/screens/(.*)",
+      "dest": "/game/screens/$1"
+    },
+    {
+      "src": "/game/styles.css",
+      "dest": "/game/styles.css"
+    },
+    {
+      "src": "/game/app.js",
+      "dest": "/game/app.js"
+    },
+    {
+      "src": "/game",
+      "dest": "/game/index.html"
+    },
+    {
+      "src": "/results/assets/(.*)",
+      "dest": "/app2/assets/$1"
+    },
+    {
+      "src": "/results/screens/(.*)",
+      "dest": "/app2/screens/$1"
+    },
+    {
+      "src": "/results/styles.css",
+      "dest": "/app2/styles.css"
+    },
+    {
+      "src": "/results/app.js",
+      "dest": "/app2/app.js"
+    },
+    {
+      "src": "/results",
+      "dest": "/app2/index.html"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/game/assets/$1"
+    },
+    {
+      "src": "/screens/(.*)",
+      "dest": "/game/screens/$1"
+    },
+    {
+      "src": "/styles.css",
+      "dest": "/game/styles.css"
+    },
+    {
+      "src": "/app.js",
+      "dest": "/game/app.js"
+    },
+    {
+      "src": "/",
+      "dest": "/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.js"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/game/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/app2/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESULTS - MARCO POLO</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(-45deg, #0a0a0a, #1a1a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: #e8e8e8;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .player-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .player-rank {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .player-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .player-score {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .positive {
+            color: #28a745;
+        }
+        
+        .negative {
+            color: #dc3545;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .winner-announcement {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .winner-announcement h2 {
+            color: #ffd700;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 LIVE SCOREBOARD 🏆</h1>
+        
+        <div class="controls" style="text-align: center; margin-bottom: 30px;">
+            <button id="reset-game-btn" class="btn btn-danger">Reset Game</button>
+            <button id="final-results-btn" class="btn btn-primary">Final Results</button>
+        </div>
+        
+        <div id="players-list">
+            <div class="player-card">
+                <div class="player-rank">1</div>
+                <div class="player-info">
+                    <div class="player-name">Cargando jugadores...</div>
+                    <div class="player-role">Conectando al servidor...</div>
+                </div>
+                <div class="player-score">0 pts</div>
+            </div>
+        </div>
+        
+        <div id="winner-announcement" class="winner-announcement hidden">
+            <h2>🎉 ¡GANADOR! 🎉</h2>
+            <p id="winner-name"></p>
+            <button id="view-final-results" class="btn btn-success">Ver Resultados Finales</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script>
+        const socket = io("/", { path: "/real-time" });
+        
+        let players = [];
+        let winner = null;
+        
+        const playersList = document.getElementById("players-list");
+        const winnerAnnouncement = document.getElementById("winner-announcement");
+        const winnerName = document.getElementById("winner-name");
+        const resetGameBtn = document.getElementById("reset-game-btn");
+        const finalResultsBtn = document.getElementById("final-results-btn");
+        const viewFinalResultsBtn = document.getElementById("view-final-results");
+        
+        resetGameBtn.addEventListener("click", async () => {
+            try {
+                const response = await fetch("http://localhost:5050/api/users/reset-scores", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                
+                if (response.ok) {
+                    console.log("✅ Puntuaciones reiniciadas exitosamente");
+                    alert("¡Juego reiniciado!");
+                }
+            } catch (error) {
+                console.error("❌ Error al reiniciar las puntuaciones:", error);
+                alert("Error al reiniciar el juego");
+            }
+        });
+        
+        finalResultsBtn.addEventListener("click", () => {
+            alert("Función de resultados finales - En desarrollo");
+        });
+        
+        viewFinalResultsBtn.addEventListener("click", () => {
+            alert("Función de resultados finales - En desarrollo");
+        });
+        
+        socket.on("connect", () => {
+            console.log("✅ Conectado al servidor");
+            loadInitialData();
+        });
+        
+        socket.on("disconnect", () => {
+            console.log("❌ Desconectado del servidor");
+        });
+        
+        socket.on("userJoined", (data) => {
+            console.log("👤 Usuario se unió:", data);
+            players = data.players || [];
+            updateScoreboard();
+        });
+        
+        socket.on("scoreUpdate", (data) => {
+            console.log("📊 Actualización de puntuación:", data);
+            players = data.players || [];
+            winner = data.winner;
+            updateScoreboard();
+        });
+        
+        socket.on("gameReset", (data) => {
+            console.log("🔄 Juego reiniciado:", data);
+            players = data.players || [];
+            winner = null;
+            updateScoreboard();
+        });
+        
+        socket.on("gameResult", (data) => {
+            console.log("🏆 Resultado del juego:", data);
+            players = data.players || [];
+            winner = data.winner;
+            updateScoreboard();
+        });
+        
+        socket.on("notifyGameOver", (data) => {
+            console.log("🎯 Juego terminado:", data);
+            winner = data.winner;
+            updateScoreboard();
+        });
+        
+        async function loadInitialData() {
+            try {
+                const response = await fetch("http://localhost:5050/api/users/players");
+                const data = await response.json();
+                players = data || [];
+                updateScoreboard();
+            } catch (error) {
+                console.error("❌ Error al cargar datos iniciales:", error);
+                playersList.innerHTML = `
+                    <div class="player-card">
+                        <div class="player-rank">!</div>
+                        <div class="player-info">
+                            <div class="player-name">Error de conexión</div>
+                            <div class="player-role">No se pudo conectar al servidor</div>
+                        </div>
+                        <div class="player-score">0 pts</div>
+                    </div>
+                `;
+            }
+        }
+        
+        function updateScoreboard() {
+            if (players.length === 0) {
+                playersList.innerHTML = `
+                    <div class="player-card">
+                        <div class="player-rank">?</div>
+                        <div class="player-info">
+                            <div class="player-name">No hay jugadores conectados</div>
+                            <div class="player-role">Esperando jugadores...</div>
+                        </div>
+                        <div class="player-score">0 pts</div>
+                    </div>
+                `;
+                winnerAnnouncement.classList.add("hidden");
+                return;
+            }
+            
+            const sortedPlayers = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
+            
+            playersList.innerHTML = sortedPlayers.map((player, index) => `
+                <div class="player-card ${player.role || ''}">
+                    <div class="player-rank">${index + 1}</div>
+                    <div class="player-info">
+                        <div class="player-name">${player.nickname}</div>
+                        <div class="player-role">${player.role || 'Spectator'}</div>
+                    </div>
+                    <div class="player-score ${(player.score || 0) >= 0 ? 'positive' : 'negative'}">
+                        ${player.score || 0} pts
+                    </div>
+                </div>
+            `).join('');
+            
+            if (winner) {
+                const winnerPlayer = players.find(p => p.nickname === winner);
+                if (winnerPlayer) {
+                    winnerName.textContent = `${winnerPlayer.nickname} gana con ${winnerPlayer.score} puntos!`;
+                    winnerAnnouncement.classList.remove("hidden");
+                }
+            } else {
+                winnerAnnouncement.classList.add("hidden");
+            }
+        }
+        
+        console.log("🚀 Live Scoreboard iniciado");
+    </script>
+</body>
+</html>
