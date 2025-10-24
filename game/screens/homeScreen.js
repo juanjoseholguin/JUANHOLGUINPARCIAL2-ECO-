@@ -1,6 +1,7 @@
 import { navigateTo, socket, makeRequest } from "../app.js";
 
 export default function renderHomeScreen() {
+  console.log("Rendering home screen");
   const app = document.getElementById("app");
   app.innerHTML = `
     <div id="home-welcome-screen">
